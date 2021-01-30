@@ -21,14 +21,36 @@ public class TCPConnection {
             @Override
             public void run() {
                 try {
-                    String msg = input.readLine();
+                    eventListener.onConnectionReady(TCPConnection.this);
+                    while (!rxThread.isInterrupted()){
+                        eventListener.onReceiveString(TCPConnection.this, input.readLine());
+                    }
                 } catch (IOException e) {
-
+                    eventListener.onException(TCPConnection.this, e);
                 } finally {
-
+                    eventListener.onDisconnect(TCPConnection.this);
                 }
             }
         });
         rxThread.start();
+    }
+
+    public synchronized void sendString(String value) {
+        try {
+            output.write(value + "\r\n");
+            output.flush();
+        } catch (IOException e) {
+            eventListener.onException(TCPConnection.this, e);
+            disconnect();
+        }
+    }
+
+    public synchronized void disconnect() {
+        rxThread.interrupt();
+        try {
+            socket.close();
+        } catch (IOException e) {
+            eventListener.onException(TCPConnection.this, e);
+        }
     }
 }
