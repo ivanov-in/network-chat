@@ -12,7 +12,11 @@ public class TCPConnection {
     private final BufferedReader input;
     private final BufferedWriter output;
 
-    public TCPConnection (TCPConnectionListener eventListener,Socket socket) throws IOException {
+    public TCPConnection(TCPConnectionListener eventListener, String ipAddress, int port) throws IOException{
+        this(eventListener, new Socket(ipAddress, port));
+    };
+
+    public TCPConnection(TCPConnectionListener eventListener,Socket socket) throws IOException {
         this.eventListener = eventListener;
         this.socket = socket;
         input = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
@@ -52,5 +56,10 @@ public class TCPConnection {
         } catch (IOException e) {
             eventListener.onException(TCPConnection.this, e);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "TCPConnection: " + socket.getInetAddress() + ": " + socket.getPort();
     }
 }
